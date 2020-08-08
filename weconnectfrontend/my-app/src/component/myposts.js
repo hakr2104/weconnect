@@ -24,7 +24,12 @@ export class Myposts extends Component {
       UserName: data,
     });
     const user = await fetch(
-      `http://localhost:8384/api/loginuser?username=${data}`
+      `http://localhost:8384/api/loginuser?username=${data}`,
+      {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      }
     )
       .then((p) => {
         console.log(p);
@@ -32,11 +37,20 @@ export class Myposts extends Component {
       })
       .then((user) => {
         console.log(user);
-        console.log("HAHAHA " + user.username + " " + user.id + " " + data);
+        console.log("HAHAHA ");
+        console.log(user);
         return user;
       });
-    const posts1 = await fetch(
-      `http://localhost:8384/api/posts?userId=${user.id}`
+    const posts1 = await user.posts6s;
+    await this.setState({
+      posts: posts1,
+    });
+    /* const posts1 = await fetch(
+      `http://localhost:8384/api/posts?userId=${user.id}`,
+      {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },}
     )
       .then((p) => {
         console.log(p);
@@ -53,13 +67,13 @@ export class Myposts extends Component {
         this.setState({
           posts: posts1,
         });
-      });
+      });*/
   }
   render() {
     // const { data } = this.props.location;
     const { posts } = this.state;
-    console.log("HI" + posts);
-    console.log(posts);
+    //  console.log("HI" + posts);
+    //  console.log(posts);
     // this.componentDidMount();
     return (
       <>
@@ -101,7 +115,12 @@ export class Myposts extends Component {
                     </div>
                   </Card.Header>
                   <Card.Text>{post.body.substring(0, 300)}</Card.Text>
-                  <Link to={{ pathname: "./postdetails", data: post.id }}>
+                  <Link
+                    to={{
+                      pathname: "./postdetails",
+                      data: { username: this.state.username, postid: post.id },
+                    }}
+                  >
                     ...Read More
                   </Link>
                 </Card.Body>

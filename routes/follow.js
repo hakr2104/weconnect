@@ -1,9 +1,10 @@
 const express = require("express");
 const route = express.Router();
-const Users = require("../db/posts").Users;
+const { Users } = require("../db/posts");
 const following = require("../db/posts").Following;
-
-route.get("/", (req, res) => {
+const isAuth = require("../middleware/isauth");
+//get all those whom a user follows
+route.get("/", isAuth, (req, res) => {
   Users.findOne({ where: { username: req.query.p1 } }).then((user) => {
     let id = user.id;
     following
@@ -13,17 +14,21 @@ route.get("/", (req, res) => {
       });
   });
 });
-route.post("/", (req, res) => {
-  console.log(
-    "888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888"
-  );
+//
+route.post("/", isAuth, (req, res) => {
   Users.findOne({ where: { username: req.body.p1 } }).then((user) => {
     let id = user.id;
     following
-      .create({ naam: req.body.p2, userId: id })
-      .then((followinglist) => {
-        console.log(req.body.p1 + " is now following " + req.body.p2);
-        res.send();
+      .findOne({ where: { naam: req.body.p2, userId: id } })
+      .then((user) => {
+        if (!user) {
+          following
+            .create({ naam: req.body.p2, userId: id })
+            .then((followinglist) => {
+              console.log(req.body.p1 + " is now following " + req.body.p2);
+              res.send();
+            });
+        }
       });
   });
 });

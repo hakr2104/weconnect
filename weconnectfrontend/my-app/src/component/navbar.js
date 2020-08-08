@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { Component } from "react";
 import { Link } from "react-router-dom";
 // var React = require("react");
@@ -23,6 +24,7 @@ export class Navbar1 extends Component {
     const { username } = this.props;
     this.setState({ username: username });
   }
+
   render() {
     return (
       <Navbar className="navbar-light " bg="dark" text="light" expand="lg">
@@ -55,6 +57,7 @@ export class Navbar1 extends Component {
           {/* <FormControl type="text" placeholder="Search" className="mr-sm-2" /> */}
           {/* <Button variant="outline-success">Search</Button> */}
           {/* </Form> */}
+          <Link to={`./login`}>Logout</Link>
           <Link to={`./profile?username=${localStorage.getItem("username")}`}>
             <IoIosPerson
               size="3rem"

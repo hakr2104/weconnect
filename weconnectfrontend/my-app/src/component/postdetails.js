@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { MdEdit } from "react-icons/md";
+import { Link } from "react-router-dom";
 
 export class Postdetails extends Component {
   constructor(props) {
@@ -9,13 +11,18 @@ export class Postdetails extends Component {
       UserNameOfPost: "",
       post: "",
       currentstate: "FOLLOW",
+      username: "",
     };
   }
   componentDidMount() {
     const postid = localStorage.getItem("postid");
     // this.setState({});
     // const name = localStorage.getItem("username");
-    fetch(`http://localhost:8384/api/posts?id=${postid}`)
+    fetch(`http://localhost:8384/api/posts?id=${postid}`, {
+      headers: {
+        Authorization: localStorage.getItem("token"),
+      },
+    })
       .then((post) => post.json())
       .then((post) => {
         fetch(`http://localhost:8384/api/users?id=${post.userId}`)
@@ -29,7 +36,12 @@ export class Postdetails extends Component {
             fetch(
               `http://localhost:8384/api/follow?p1=${localStorage.getItem(
                 "username"
-              )}`
+              )}`,
+              {
+                headers: {
+                  Authorization: localStorage.getItem("token"),
+                },
+              }
             )
               .then((followinglist) => followinglist.json())
               .then((followinglist) => {
@@ -66,6 +78,7 @@ export class Postdetails extends Component {
       fetch(`http://localhost:8384/api/follow/`, {
         method: "POST",
         headers: {
+          Authorization: localStorage.getItem("token"),
           Accept: "application/json",
           "Content-Type": "application/json",
         },
@@ -84,16 +97,33 @@ export class Postdetails extends Component {
   }
   render() {
     const { data } = this.props.location;
+
     if (data) {
-      localStorage.setItem("postid", data);
+      localStorage.setItem("postid", data.postid);
     }
     const { post } = this.state;
+    console.log("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS");
+    console.log(data.postid);
     return (
       <>
         {" "}
         <div className="col">
           <div>Written By-{this.state.UserNameOfPost}</div>
           <br></br>
+          {this.state.UserNameOfPost.localeCompare(
+            localStorage.getItem("username")
+          ) == 0 ? (
+            <Link
+              to={{
+                pathname: "./newblog",
+                data: { username: this.state.username, postid: post.id },
+              }}
+            >
+              <MdEdit></MdEdit>
+            </Link>
+          ) : (
+            <h1></h1>
+          )}
           <button
             type="submit"
             className="btn btn-outline-primary mt-2"

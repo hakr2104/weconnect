@@ -31,14 +31,23 @@ export class Home extends Component {
       val: "shadow",
       disabled: "disabled",
       source: "",
+      cc: 0,
     };
   }
-
-  async componentDidMount() {
+  async componentDidUpdate() {
+    //   console.log("componentdidupdate");
     // console.log("hahahaha");
-    const { data } = this.props.location;
-    this.setState({ UserName: data });
-    const users = await fetch("http://localhost:8384/api/users/")
+  }
+  async componentDidMount() {
+    //  console.log("componentdidmount");
+    // console.log("hahahaha");
+    // const { data } = this.props.location;
+    //  this.setState({ UserName: data });
+    const users = await fetch("http://localhost:8384/api/users/", {
+      headers: {
+        Authorization: localStorage.getItem("token"),
+      },
+    })
       .then((p) => {
         return p.json();
       })
@@ -49,19 +58,28 @@ export class Home extends Component {
         return p;
       });
     fetch(
-      `http://localhost:8384/api/follow?p1=${localStorage.getItem("username")}`
+      `http://localhost:8384/api/follow?p1=${localStorage.getItem("username")}`,
+      {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      }
     )
       .then((pyf) => pyf.json())
       .then((pyf) => this.setState({ peopleyoufollow: pyf }));
   }
   handlehover() {
-    console.log("HEY");
+    //   console.log("HEY");
   }
-  handlefollowclick(username) {
-    fetch(`http://localhost:8384/api/follow`, {
+  async handlefollowclick(username) {
+    this.setState({ currentstate: "unfollow", cc: 1 });
+
+    //alert(event.currentTarget.textContent);
+    await fetch(`http://localhost:8384/api/follow`, {
       method: "POST",
       headers: {
         Accept: "application/json",
+        Authorization: localStorage.getItem("token"),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -69,15 +87,52 @@ export class Home extends Component {
         p1: localStorage.getItem("username"),
       }),
     });
+    const { data } = this.props.location;
+    this.setState({ UserName: data });
+    const users = await fetch("http://localhost:8384/api/users/", {
+      headers: {
+        Authorization: localStorage.getItem("token"),
+      },
+    })
+      .then((p) => {
+        return p.json();
+      })
+      .then((p) => {
+        this.setState({
+          users: p,
+        });
+        return p;
+      })
+      .then(
+        fetch(
+          `http://localhost:8384/api/follow?p1=${localStorage.getItem(
+            "username",
+            {
+              headers: {
+                Authorization: localStorage.getItem("token"),
+              },
+            }
+          )}`
+        )
+          .then((pyf) => pyf.json())
+          .then((pyf) => this.setState({ peopleyoufollow: pyf }))
+          .then(this.render())
+      );
+
+    await this.setState({ currentstate: "unfollow" });
     // this.setState({});
     // const name = localStorage.getItem("username");
     // console.log(postid);
+    console.log("handlefollowclick");
+  }
+  handlecountclick(cc1) {
+    this.setState({ cc: cc1 + 1 });
   }
   render() {
-    const { peopleyoufollow } = this.state;
+    console.log("render");
+    const { peopleyoufollow, cc } = this.state;
     const { data } = localStorage.getItem("username");
     // const{data} =this.props.location;
-
     // console.log(data);
     return (
       <div
@@ -93,7 +148,7 @@ export class Home extends Component {
         <Navbar1 username={localStorage.getItem("username")}></Navbar1>
         <br></br>
         <br></br>
-        <br></br>
+
         {/* <img src={profile} width="50rem" height="50rem" /> */}
 
         <div style={{ display: "table-row" }}>
@@ -105,16 +160,33 @@ export class Home extends Component {
             }}
           >
             {this.state.users.map((user) => {
+              let found = null;
+              let cs = "follow";
+
+              found = peopleyoufollow.find((user1) => {
+                let ans1 = user.username;
+                return ans1.localeCompare(user1.naam) == 0;
+              });
+              //    console.log("Ye kuch naya hai ");
+              //     console.log(found);
+              if (found) {
+                cs = "uniFollow";
+              } else {
+                cs = "Follow";
+              }
+              console.log("##########################################");
+              console.log(user.posts6s);
+              console.log(user);
               const posts = user.posts6s;
               //  console.log(user.username + "->");
               //  console.log(user.posts5s);
 
               {
                 if (posts.length > 0) {
-                  console.log("idhar aaye");
+                  //        console.log("idhar aaye");
                   return posts.map((post, ind) => {
                     var source = "";
-                    console.log(post.title);
+                    //        console.log(post.title);
                     if (user.imageurl)
                       source = require(`../images/${user.imageurl}`);
                     //  console.log(post.username);
@@ -122,9 +194,9 @@ export class Home extends Component {
                       <>
                         <Card
                           onMouseEnter={() => {
-                            console.log(this.state.val);
+                            //              console.log(this.state.val);
                             this.setState({ val: "shadow-lg" });
-                            console.log(this.state.val);
+                            //              console.log(this.state.val);
                             this.setState({
                               scale: "1.1",
                               deg: "0deg",
@@ -202,11 +274,15 @@ export class Home extends Component {
                                   variant="outline-dark"
                                   style={{ padding: ".5rem" }}
                                 >
-                                  <AiOutlinePlus
-                                    size="1rem"
-                                    style={{ marginTop: "-.3rem" }}
-                                  ></AiOutlinePlus>
-                                  {this.state.currentstate}
+                                  {cs.localeCompare("Follow") == 0 ? (
+                                    <AiOutlinePlus
+                                      size="1rem"
+                                      style={{ marginTop: "-.3rem" }}
+                                    ></AiOutlinePlus>
+                                  ) : (
+                                    ""
+                                  )}
+                                  {cs}
                                 </Button>
                               </div>
                             </Card.Header>
@@ -242,7 +318,7 @@ export class Home extends Component {
                               <Link
                                 to={{
                                   pathname: "./postdetails",
-                                  data: post.id,
+                                  data: { postid: post.id },
                                 }}
                               >
                                 {/* {localStorage.setItem("postid", post.id)} */}
@@ -267,13 +343,29 @@ export class Home extends Component {
               text="light"
               className="card h-322 w-14  "
               //  bg="dark"
-              style={{ marginLeft: "2rem", width: "20rem", height: "32" }}
+              style={{
+                marginLeft: "2rem",
+                marginTop: "0rem",
+                width: "20rem",
+                height: "32",
+                //   position: "fixed",
+              }}
               id="card"
             >
               <Card.Body>
                 <Card.Header>People You Follow</Card.Header>
                 {peopleyoufollow.map((person) => {
-                  return <Card.Text>{person.naam}</Card.Text>;
+                  return (
+                    <Card.Text>
+                      <Link
+                        to={{
+                          pathname: `./profile?username=${person.naam}`,
+                        }}
+                      >
+                        {person.naam}
+                      </Link>
+                    </Card.Text>
+                  );
                 })}
               </Card.Body>
             </Card>

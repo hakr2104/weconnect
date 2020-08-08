@@ -1,39 +1,36 @@
-const express=require('express')
+const express = require("express");
 const route = express.Router();
-const Users=require('../db/posts').Users
-var badshah="";
+const Posts = require("../db/posts").Posts;
+const Users = require("../db/posts").Users;
+const jwt = require("jsonwebtoken");
+var badshah = "";
 
-route.post('/',async (req,res)=>{
-    //Users.create({username:req.body.username,password:req.body.password}).then((user)=>{res.send(user)})
-     badshah="";
-    await console.log(req.body);
-    //await console.log(req.query);
-    await console.log("HI "+ req.body.username+" "+req.query.password+" ");  
-    const user=await Users.findOne({where:{username:req.body.username}}) 
-    await console.log(user);
-    if(user){
-        if((user.password)==(req.body.password)){
-             badshah=req.body.username;
-             console.log("Hurrah! you logged in successfully "+badshah+" okay?")
-        }else{
-            console.log("password did not match")
-        }
+const isAuth = require("../middleware/isauth");
+route.post("/", async (req, res) => {
+  badshah = "";
+  const user = await Users.findOne({
+    include: Posts,
+    where: { username: req.body.username },
+  });
+  if (user) {
+    if (user.password == req.body.password) {
+      badshah = req.body.username;
+      const token = jwt.sign(
+        { userId: user.id },
+        "94DHWWHEdjfksk54ihe3#*^!382",
+        { expiresIn: "1h" }
+      );
+      res.send({ token: token });
+    } else {
+      console.log("password did not match");
+      res.send({ token: null });
     }
-    res.send(badshah)
-})
-route.get('/',(req,res)=>{
-    if(req.query.username){
-        // console.log("oooooooo "+req.query.username)
-         const user= Users.findOne({where:{username:req.query.username}})
-         .then((user)=> {
-            //  console.log(user);
-            //console.log("i came here with "+user.username)
-             res.send(user);
-         })
-        // res.send(user);
-    }else res.send("username is not present in the database")
-    // res.send("hi how you doing?")
-})
-module.exports={
-    badshah,route
-}
+  } else {
+    res.send({ token: null });
+  }
+});
+
+module.exports = {
+  badshah,
+  route,
+};

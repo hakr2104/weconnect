@@ -7,52 +7,29 @@ let { Name } = require("../server");
 
 const Posts = require("../db/posts").Posts;
 const Users = require("../db/posts").Users;
-
+const isAuth = require("../middleware/isauth");
+//for getting a single post,send a get request to http://localhost:8384/api/posts
+// with id of post in the query
 route.get(
   "/",
+  isAuth,
   (req, res) => {
     Name = require("../server").Name;
-
-    console.log("purana " + req.query.id);
-
-    if (req.query.userId) {
-      // console.log("naya "+req.query.id)
-      Posts.findAll({
-        include: Users,
-        where: { userId: req.query.userId },
-      }).then((posts) => {
-        res.send(posts);
-      });
-    } else if (req.query.id) {
-      //  console.log("***************************************");
-      Posts.findOne({ where: { id: req.query.id } }).then((post) => {
-        // console.log(post);
+    Posts.findOne({ include: Users, where: { id: req.query.id } }).then(
+      (post) => {
         res.send(post);
-      });
-    } else {
-      ///  console.log(req.query.yp+"************************************************")
-      if (req.query.yp) {
-        const users = Users.findOne({ where: { username: Name } }).then(
-          (user) => {
-            let id = user.id;
-            Posts.findAll({ include: Users, where: { userid: id } }).then(
-              (posts) => {
-                res.send(posts);
-              }
-            );
-          }
-        );
-      } else {
-        Posts.findAll({ include: Users }).then((posts) => {
-          //    console.log("Came here " + posts[0].title);
-          res.send(posts);
-        });
       }
-    }
+    );
   } //[{Users}]
 );
-route.post("/", (req, res) => {
-  // Name=require('../server').Name;
+//for getting all posts, just send a request at http://localhost:8384/api/posts/allposts
+route.get("/allposts", isAuth, (req, res) => {
+  Posts.findAll({ include: Users }).then((posts) => {
+    res.send(posts);
+  });
+});
+//for a new post-send UserName,title,body of the post to http://localhost:8384/api/posts
+route.post("/", isAuth, (req, res) => {
   const users = Users.findOne({ where: { username: req.body.UserName } }).then(
     (user) => {
       let id = user.id;
@@ -66,6 +43,24 @@ route.post("/", (req, res) => {
     }
   );
 });
+//for update-send the UserName,postid,and title and body of post to http://localhost:8384/api/posts/update
+
+route.post("/update", isAuth, (req, res) => {
+  const users = Users.findOne({ where: { username: req.body.UserName } }).then(
+    (user) => {
+      let id = user.id;
+      Posts.findOne({ where: { id: req.body.postid } }).then((post) =>
+        post.update({
+          title: req.body.title,
+          body: req.body.body,
+          userId: id,
+        })
+      );
+    }
+  );
+  res.send();
+});
+
 module.exports = {
   route,
 };

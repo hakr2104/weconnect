@@ -24,8 +24,10 @@ export class Profile extends Component {
       .then((user) => {
         this.setState({ imageurl: user.imageurl });
       });
+    this.render();
   }
   render() {
+    // console.log("HI");
     console.log(this.state.imageurl);
     var source = "";
     if (this.state.imageurl != null && this.state.imageurl != "")

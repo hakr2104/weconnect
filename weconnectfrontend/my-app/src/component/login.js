@@ -20,6 +20,7 @@ export class Login extends Component {
     };
   }
   handlesignupclick() {
+    console.log(this.state.username);
     fetch(`http://localhost:8384/api/users`, {
       method: "POST",
       headers: {
@@ -30,7 +31,7 @@ export class Login extends Component {
     });
   }
   handleloginclick() {
-    console.log(this.state.username + " " + this.state.password);
+    //  console.log(this.state.username + " " + this.state.password);
     const response1 = fetch("http://localhost:8384/api/loginuser", {
       method: "POST",
       headers: {
@@ -40,18 +41,16 @@ export class Login extends Component {
       body: JSON.stringify(this.state),
     })
       .then((response) => {
-        response = response.text();
+        response = response.json();
         return response;
       })
       .then((response) => {
-        console.log("HI " + response);
-        if (this.state.username != "") {
-          if (this.state.username == response) {
-            console.log("HURRAH, you logged in successfully");
-            // location.href = "home";
-            localStorage.setItem("username", response);
-            this.props.history.push({ pathname: "/home", data: response });
-          }
+        if (response.token == null) {
+          console.log("username or password did not match");
+        } else {
+          localStorage.setItem("token", response.token);
+          localStorage.setItem("username", this.state.username);
+          this.props.history.push({ pathname: "/home", data: response });
         }
       });
     //console.log(response);

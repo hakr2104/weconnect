@@ -18,7 +18,12 @@ export class Profile extends Component {
     fetch(
       `http://localhost:8384/api/users?username=${localStorage.getItem(
         "username"
-      )}`
+      )}`,
+      {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      }
     )
       .then((user) => user.json())
       .then((user) => {

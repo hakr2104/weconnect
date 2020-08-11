@@ -1,12 +1,14 @@
 const Sequelize = require("sequelize");
-
-const db = new Sequelize({
-  dialect: "mysql",
-  database: "wcdatabase",
-  username: "wcuser",
-  password: "wcuser",
-});
-
+let db;
+if (process.env.DATABASE_URL) db = new Sequelize(process.env.DATABASE_URL);
+else {
+  db = new Sequelize({
+    dialect: "mysql",
+    database: "wcdatabase",
+    username: "wcuser",
+    password: "wcuser",
+  });
+}
 const Posts = db.define("posts6", {
   id: {
     type: Sequelize.DataTypes.INTEGER,
